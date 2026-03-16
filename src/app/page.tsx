@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useGradientGenerator } from '@/hooks/useGradientGenerator';
 import { colorPresets } from '@/lib/constants';
 import { colorToParam } from '@/lib/utils';
-import { Download, RefreshCw, Plus, Trash2, Palette, Sparkles, Layers, Code, Zap } from 'lucide-react';
+import { Download, RefreshCw, Palette, Sparkles, Layers, Code, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HexColorPicker } from 'react-colorful';
 
 export default function GradientGenerator() {
   const {
@@ -20,10 +22,12 @@ export default function GradientGenerator() {
     svgContent,
     isGenerating,
     generateGradient,
-    downloadGradient
+    downloadGradient,
+    colorMode,
+    setColorMode,
+    updateColors
   } = useGradientGenerator();
 
-  const [newColor, setNewColor] = useState('');
   const [apiLinkCopied, setApiLinkCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -31,26 +35,6 @@ export default function GradientGenerator() {
     setMounted(true);
     generateGradient();
   }, [generateGradient]);
-
-  const handleColorChange = (index: number, color: string) => {
-    const newColors = [...colors];
-    newColors[index] = color;
-    setColors(newColors);
-  };
-
-  const addColor = () => {
-    if (newColor && colors.length < 8) {
-      setColors([...colors, newColor]);
-      setNewColor('');
-    }
-  };
-
-  const removeColor = (index: number) => {
-    if (colors.length > 1) {
-      const newColors = colors.filter((_, i) => i !== index);
-      setColors(newColors);
-    }
-  };
 
   const applyPreset = (preset: typeof colorPresets[0]) => {
     setColors(preset.colors);
@@ -216,67 +200,64 @@ export default function GradientGenerator() {
                   <Palette className="w-5 h-5 text-primary" />
                   <h2 className="font-display font-semibold text-lg">Colors</h2>
                 </div>
-                <span className="text-xs font-mono bg-muted px-2 py-1 rounded-md text-muted-foreground">
-                  {colors.length}/8
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">{colorMode === 'free' ? '自由模式' : '推荐模式'}</span>
+                  <Switch 
+                    checked={colorMode === 'recommended'}
+                    onCheckedChange={(checked) => setColorMode(checked ? 'recommended' : 'free')}
+                    className="w-10 h-5"
+                  />
+                </div>
               </div>
               
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {colors.map((color, index) => (
-                  <div key={index} className="flex items-center gap-3 group">
-                    <div className="relative flex-shrink-0">
-                       <Input
-                        type="color"
-                        value={color}
-                        onChange={(e) => handleColorChange(index, e.target.value)}
-                        className="w-12 h-12 p-1 rounded-xl cursor-pointer border-2 hover:border-primary transition-colors"
+              <div className="grid grid-cols-1 gap-6">
+                {/* Color Wheel */}
+                <div className="space-y-4">
+                  <div className="flex flex-col items-center">
+                    <div className="wheel-color-picker">
+                      <HexColorPicker 
+                        color={colors[0]} 
+                        onChange={(color) => {
+                          if (colorMode === 'recommended') {
+                            updateColors(color);
+                          } else {
+                            updateColors(color, colors[1]);
+                          }
+                        }} 
                       />
                     </div>
                     <Input
                       type="text"
-                      value={color.toUpperCase()}
-                      onChange={(e) => handleColorChange(index, e.target.value)}
-                      className="font-mono text-sm tracking-wider uppercase"
+                      value={colors[0].toUpperCase()}
+                      onChange={(e) => {
+                        if (colorMode === 'recommended') {
+                          updateColors(e.target.value);
+                        } else {
+                          updateColors(e.target.value, colors[1]);
+                        }
+                      }}
+                      className="mt-4 font-mono text-sm tracking-wider uppercase w-full max-w-xs"
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeColor(index)}
-                      disabled={colors.length <= 1}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
-                ))}
-              </div>
-
-               {colors.length < 8 && (
-                <div className="flex items-center gap-3 pt-2">
-                   <div className="relative flex-shrink-0">
+                  
+                  {colorMode === 'free' && (
+                    <div className="flex flex-col items-center">
+                      <div className="wheel-color-picker">
+                        <HexColorPicker 
+                          color={colors[1]} 
+                          onChange={(color) => updateColors(colors[0], color)} 
+                        />
+                      </div>
                       <Input
-                        type="color"
-                        value={newColor || '#000000'}
-                        onChange={(e) => setNewColor(e.target.value)}
-                         className="w-12 h-12 p-1 rounded-xl cursor-pointer border-2 border-dashed border-muted-foreground/30 hover:border-primary transition-colors"
+                        type="text"
+                        value={colors[1].toUpperCase()}
+                        onChange={(e) => updateColors(colors[0], e.target.value)}
+                        className="mt-4 font-mono text-sm tracking-wider uppercase w-full max-w-xs"
                       />
-                   </div>
-                   <Input
-                      type="text"
-                      placeholder="#000000"
-                      value={newColor.toUpperCase()}
-                      onChange={(e) => setNewColor(e.target.value)}
-                      className="font-mono text-sm tracking-wider uppercase"
-                    />
-                   <Button 
-                    onClick={addColor}
-                    disabled={!newColor}
-                    className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                    </div>
+                  )}
                 </div>
-               )}
+              </div>
             </div>
 
             {/* Presets */}
