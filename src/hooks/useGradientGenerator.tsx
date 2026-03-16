@@ -56,6 +56,55 @@ export function useGradientGenerator() {
     return rgbToHex(complementaryRgb.r, complementaryRgb.g, complementaryRgb.b);
   }, []);
 
+  const getTriadicColor = useCallback((color: string) => {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    const hsl = rgbToHsl(r, g, b);
+    const triadicHsl = [(hsl.h + 120) % 360, Math.min(hsl.s + 10, 100), hsl.l];
+    const triadicRgb = hslToRgb(triadicHsl[0], triadicHsl[1], triadicHsl[2]);
+    
+    return rgbToHex(triadicRgb.r, triadicRgb.g, triadicRgb.b);
+  }, []);
+
+  const getAnalogousColor = useCallback((color: string) => {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    const hsl = rgbToHsl(r, g, b);
+    const analogousHsl = [(hsl.h + 30) % 360, hsl.s, Math.min(hsl.l + 15, 85)];
+    const analogousRgb = hslToRgb(analogousHsl[0], analogousHsl[1], analogousHsl[2]);
+    
+    return rgbToHex(analogousRgb.r, analogousRgb.g, analogousRgb.b);
+  }, []);
+
+  const getRecommendedColor = useCallback((color: string) => {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    const hsl = rgbToHsl(r, g, b);
+    
+    let recommendedHsl: { h: number; s: number; l: number };
+    
+    if (hsl.l < 30) {
+      recommendedHsl = [(hsl.h + 180) % 360, Math.min(hsl.s + 20, 100), Math.min(hsl.l + 50, 80)];
+    } else if (hsl.l > 70) {
+      recommendedHsl = [(hsl.h + 180) % 360, Math.min(hsl.s + 20, 100), Math.max(hsl.l - 40, 25)];
+    } else {
+      recommendedHsl = [(hsl.h + 180) % 360, hsl.s, 100 - hsl.l];
+    }
+    
+    const recommendedRgb = hslToRgb(recommendedHsl.h, recommendedHsl.s, recommendedHsl.l);
+    
+    return rgbToHex(recommendedRgb.r, recommendedRgb.g, recommendedRgb.b);
+  }, []);
+
   const rgbToHsl = (r: number, g: number, b: number) => {
     r /= 255;
     g /= 255;
@@ -111,14 +160,14 @@ export function useGradientGenerator() {
 
   const updateColors = useCallback((primaryColor: string, secondaryColor?: string) => {
     if (colorMode === 'recommended') {
-      const complementaryColor = getComplementaryColor(primaryColor);
-      setColors([primaryColor, complementaryColor]);
+      const recommended = getRecommendedColor(primaryColor);
+      setColors([primaryColor, recommended]);
     } else {
       if (secondaryColor) {
         setColors([primaryColor, secondaryColor]);
       }
     }
-  }, [colorMode, getComplementaryColor]);
+  }, [colorMode, getRecommendedColor]);
 
   return {
     colors,
@@ -133,6 +182,7 @@ export function useGradientGenerator() {
     downloadGradient,
     colorMode,
     setColorMode,
-    updateColors
+    updateColors,
+    getRecommendedColor
   };
 }

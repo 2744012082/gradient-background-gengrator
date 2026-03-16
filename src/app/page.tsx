@@ -9,7 +9,7 @@ import { colorPresets } from '@/lib/constants';
 import { colorToParam } from '@/lib/utils';
 import { Download, RefreshCw, Palette, Sparkles, Layers, Code, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { HexColorPicker } from 'react-colorful';
+import { DualColorWheel } from '@/components/DualColorWheel';
 
 export default function GradientGenerator() {
   const {
@@ -25,7 +25,8 @@ export default function GradientGenerator() {
     downloadGradient,
     colorMode,
     setColorMode,
-    updateColors
+    updateColors,
+    getRecommendedColor
   } = useGradientGenerator();
 
   const [apiLinkCopied, setApiLinkCopied] = useState(false);
@@ -211,51 +212,23 @@ export default function GradientGenerator() {
               </div>
               
               <div className="grid grid-cols-1 gap-6">
-                {/* Color Wheel */}
                 <div className="space-y-4">
                   <div className="flex flex-col items-center">
-                    <div className="wheel-color-picker">
-                      <HexColorPicker 
-                        color={colors[0]} 
-                        onChange={(color) => {
-                          if (colorMode === 'recommended') {
-                            updateColors(color);
-                          } else {
-                            updateColors(color, colors[1]);
-                          }
-                        }} 
-                      />
-                    </div>
-                    <Input
-                      type="text"
-                      value={colors[0].toUpperCase()}
-                      onChange={(e) => {
+                    <DualColorWheel 
+                      color1={colors[0]}
+                      color2={colors[1]}
+                      onChange={(color1, color2) => {
                         if (colorMode === 'recommended') {
-                          updateColors(e.target.value);
+                          const recommended = getRecommendedColor(color1);
+                          setColors([color1, recommended]);
                         } else {
-                          updateColors(e.target.value, colors[1]);
+                          setColors([color1, color2]);
                         }
                       }}
-                      className="mt-4 font-mono text-sm tracking-wider uppercase w-full max-w-xs"
+                      mode={colorMode}
+                      getRecommendedColor={getRecommendedColor}
                     />
                   </div>
-                  
-                  {colorMode === 'free' && (
-                    <div className="flex flex-col items-center">
-                      <div className="wheel-color-picker">
-                        <HexColorPicker 
-                          color={colors[1]} 
-                          onChange={(color) => updateColors(colors[0], color)} 
-                        />
-                      </div>
-                      <Input
-                        type="text"
-                        value={colors[1].toUpperCase()}
-                        onChange={(e) => updateColors(colors[0], e.target.value)}
-                        className="mt-4 font-mono text-sm tracking-wider uppercase w-full max-w-xs"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
