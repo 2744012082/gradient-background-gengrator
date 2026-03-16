@@ -164,3 +164,48 @@ h1, h2, h3, h4, h5, h6 {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
+
+/* Color Picker Styles */
+.wheel-color-picker {
+  width: 240px !important;
+  height: 240px !important;
+}
+
+.wheel-color-picker .react-colorful__wheel {
+  width: 240px !important;
+  height: 240px !important;
+}
+
+.wheel-color-picker .react-colorful__pointer {
+  width: 20px !important;
+  height: 20px !important;
+  border: 3px solid white !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 50% !important;
+}
+
+.wheel-color-picker .react-colorful__saturation {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.wheel-color-picker .react-colorful__hue {
+  height: 8px !important;
+  border-radius: 4px !important;
+  margin-top: 8px !important;
+}
+
+.wheel-color-picker .react-colorful__hue-pointer {
+  width: 16px !important;
+  height: 16px !important;
+  border: 2px solid white !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 50% !important;
+  transform: translateY(-4px) !important;
+}
+
+.wheel-color-picker .react-colorful__alpha {
+  height: 8px !important;
+  border-radius: 4px !important;
+  margin-top: 8px !important;
+}
